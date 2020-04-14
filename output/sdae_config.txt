@@ -1,0 +1,10 @@
+Number of layers: 3
+Hidden nodes: 400 400 400 
+Dropout: 0.1 0.1 0.1 
+Encoder activation: sigmoid sigmoid sigmoid 
+Decoder activation: linear linear linear 
+Epochs: 1
+Bias: True
+Loss: mse
+Batch size: 32
+Optimizer: rmsprop

@@ -17,8 +17,8 @@ X_train_50 = X_train[0:50]
 n_in = n_out = X_train.shape[1];
 n_hid = 576
 
-cur_sdae = StackedDenoisingAE(n_layers = 3, n_hid = [400], dropout = [0.1], nb_epoch = 10)
-recon_mse = cur_sdae.get_pretrained_sda(X_train, X_test, X_test, dir_out = '../output/')
-cur_sdae.save_weights('../output/weights')
+cur_sdae = StackedDenoisingAE(n_layers = 3, n_hid = [400], dropout = [0.1], nb_epoch = 1)
+recon_mse = cur_sdae.get_pretrained_sda(X_train, X_test, X_test, dir_out = 'output/')
+cur_sdae.save_weights('output/weights')
 
 
