@@ -4,7 +4,7 @@
 
 import os
 os.environ['THEANO_FLAGS'] = "device=gpu1,floatX=float32"
-os.environ['KERAS_BACKEND'] = "theano"
+os.environ['KERAS_BACKEND'] = "tensorflow"
 os.environ['PYTHONHASHSEED'] = '0'
 
 import numpy as np
