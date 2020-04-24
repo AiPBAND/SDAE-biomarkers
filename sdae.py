@@ -105,9 +105,7 @@ class StackedDenoisingAE(object):
                 cur_model = Model(input_layer, decoder)
     
                 cur_model.compile(loss = self.loss_fn, optimizer=self.optimizer)
-                
-#                 cur_model.summary()
-                
+
             else:
                 cur_model = model_layers[cur_layer]
                 
@@ -178,84 +176,6 @@ class StackedDenoisingAE(object):
             model.add(encoding_layers[i])
         
         return model
-    
-    def supervised_classification(self, model, x_train, x_val, y_train, y_val, x_test, y_test, n_classes, final_act_fn = 'softmax', loss = 'categorical_crossentropy', get_recon_error = False):
-        """
-        Classification by finetuning a pretrained autoencoder model for a given task
-        """
-        model.add(Dense(n_classes, activation=final_act_fn))
-        
-        model.compile(loss = loss, optimizer=self.optimizer)
-        
-        #Early stopping to stop training when val loss increses for 1 epoch
-        early_stopping = EarlyStopping(monitor='val_loss', patience=1, verbose=0)
-        
-        hist = model.fit_generator(generator = nn_utils.batch_generator(x_train, y_train,
-                                                                             batch_size = self.batch_size, 
-                                                                             shuffle = True, 
-                                                                             n_classes=n_classes,
-                                                                             one_hot_labels= True),
-                                       samples_per_epoch = x_train.shape[0], 
-                                       callbacks = [early_stopping], 
-                                       nb_epoch=self.nb_epoch,
-                                       verbose=self.verbose, 
-                                       validation_data  = nn_utils.batch_generator(x_val, y_val, 
-                                                                                   batch_size = self.batch_size, 
-                                                                                   shuffle = False, 
-                                                                                   n_classes=n_classes,
-                                                                                   one_hot_labels= True), 
-                                       nb_val_samples = x_val.shape[0]
-                                       )
-        
-        #get final hidden layer output of finetuned SDAE
-        
-        final_train = self._get_intermediate_output(model, x_train, n_layer = -2, train = 0, n_out = model.layers[-2].output_shape[1], batch_size = self.batch_size) 
-        final_val = self._get_intermediate_output(model, x_val, n_layer = -2, train = 0, n_out = model.layers[-2].output_shape[1], batch_size = self.batch_size)
-        
-        if x_test is not None:
-            final_test = self._get_intermediate_output(model, x_test, n_layer = -2, train = 0, n_out = model.layers[-2].output_shape[1], batch_size = self.batch_size)
-        else:
-            final_test = None
-            
-        #get reconstruction error of final nodes
-        if get_recon_error:
-            recon_mse = self._get_recon_error(model, x_train, n_out = n_classes)
-        else:
-            recon_mse = None    
-            
-            
-        return model, (final_train, final_val, final_test), recon_mse
-        
-    def evaluate_on_test(self, fit_model, x_test, y_test, n_classes, cfg):
-        """
-        Evaluate a trained model on test dataset 
-        Use this function only for the final evaluation, not for development
-        """
-        fit_model.evaluate_generator(generator = nn_utils.batch_generator(x_test, y_test,
-                                                                             batch_size = self.batch_size, 
-                                                                             shuffle = False,
-                                                                             one_hot_labels= True,
-                                                                             n_classes = n_classes),
-                                       samples = x_test.shape[0],
-                                       )
-        
-    def predict(self, fit_model, x_test):
-        """
-        Get prediction probability for each class for test data
-        @param fit_model: trained model
-        @param x_test: test data
-        """
-        predictions = fit_model.predict_generator(generator = nn_utils.batch_generator(
-                                                                     x_test, 
-                                                                     None,
-                                                                     batch_size = self.batch_size, 
-                                                                     shuffle = False, 
-                                                                     y_gen = False
-                                                                     ),
-                                       val_samples = x_test.shape[0],
-                                       )
-
-        return predictions
         
     def _write_sda_config(self, dir_out):
         """
@@ -263,7 +183,7 @@ class StackedDenoisingAE(object):
         @param cur_sdae: autoencoder class
         @param cfg: config object
         """
-        with open(dir_out + 'sdae_config.txt', 'w') as f:
+        with open(dir_out + 'sdae_config.txt', 'w+') as f:
             f.write("Number of layers: " + str(self.n_layers))
             f.write("\nHidden nodes: ")
             for i in range(self.n_layers):
