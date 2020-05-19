@@ -16,7 +16,7 @@ if os.path.exists("output"):
 
 os.mkdir('output')
 
-cur_sdae = StackedDenoisingAE(n_layers = 2, n_hid = [1000,100], dropout = [0.1], nb_epoch = 5)
+cur_sdae = StackedDenoisingAE(n_layers=2, n_hid=[1000, 100], dropout=[0.1], nb_epoch=5)
 model, data, recon_mse = cur_sdae.get_pretrained_sda(X_train, X_test, X_test, dir_out='output/', get_enc_model=False)
 
 for i, layer in enumerate(model):
@@ -24,6 +24,6 @@ for i, layer in enumerate(model):
     print(layer.name)
     for j, arr in enumerate(w):
         print(arr.shape)
-        np.savetxt('output/weights_{}{}_{}.txt'.format(i,j,arr.shape), arr)
+        np.savetxt('output/weights_{}{}_{}.txt'.format(i, j, arr.shape), arr)
 
 
