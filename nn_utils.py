@@ -103,3 +103,29 @@ def load_model(dir_name, f_model = 'model_arch.json', f_weights = 'model_weights
     model.load_weights(f_weights)
     
     return model
+
+
+def assert_input(n_layers, n_hid, dropout, enc_act, dec_act):
+    """
+    If the hidden nodes, dropout proportion, encoder activation function or decoder activation function is given,
+    it uses the same parameter for all the layers.
+    Errors out if there is a size mismatch between number of layers and parameters for each layer.
+    """
+
+    if len(n_hid) == 1:
+        n_hid = n_hid * n_layers
+
+    if len(dropout) == 1:
+        dropout = dropout * n_layers
+
+    if len(enc_act) == 1:
+        enc_act = enc_act * n_layers
+
+    if len(dec_act) == 1:
+        dec_act = dec_act * n_layers
+
+    assert (n_layers == len(n_hid) == len(dropout) == len(enc_act) == len(
+        dec_act)), "Please specify as many hidden nodes, dropout proportion on input, and encoder and decoder " \
+                   "activation function, as many layers are there, using list data structure"
+
+    return n_hid, dropout, enc_act, dec_act
