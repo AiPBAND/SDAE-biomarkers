@@ -149,5 +149,7 @@ cython_debug/
 out
 gen
 
-output
+output/*
+!output/.gitkeep
 data/csv/*.csv
+!data/csv/.gitkeep

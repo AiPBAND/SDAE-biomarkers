@@ -1,21 +1,14 @@
 """
 @author madhumita
 """
-
-import os
 import numpy as np
 import nn_utils
-
-os.environ['THEANO_FLAGS'] = "device=gpu1,floatX=float32"
-os.environ['KERAS_BACKEND'] = "tensorflow"
-os.environ['PYTHONHASHSEED'] = '2'
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-
-from keras.models import Model
-from keras.layers import Input
-from keras.layers.core import Dense, Dropout
-from keras.callbacks import EarlyStopping
-from keras import backend as K
+from tensorflow.keras.callbacks import TensorBoard
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras import backend as K
 
 
 class StackedDenoisingAE(object):
@@ -71,6 +64,7 @@ class StackedDenoisingAE(object):
         @param write_model: True to write cur_model to file
         @param model_layers: Pretrained cur_model layers, to continue training pretrained model_layers, if required
         """
+
         if model_layers is not None:
             self.n_layers = len(model_layers)
         else:
@@ -86,18 +80,21 @@ class StackedDenoisingAE(object):
                 input_layer = Input(shape=(data_in.shape[1],))
 
                 # masking input data to learn to generalize, and prevent identity learning
-                dropout_layer = Dropout(self.dropout[cur_layer])
+                dropout_layer = Dropout(rate=self.dropout[cur_layer])
                 in_dropout = dropout_layer(input_layer)
 
-                encoder_layer = Dense(output_dim=self.n_hid[cur_layer], init='glorot_uniform',
-                                      activation=self.enc_act[cur_layer], name='encoder' + str(cur_layer),
-                                      bias=self.bias)
+                encoder_layer = Dense(units=self.n_hid[cur_layer],
+                                      kernel_initializer='glorot_uniform',
+                                      activation=self.enc_act[cur_layer],
+                                      name='encoder' + str(cur_layer),
+                                      use_bias=self.bias)
                 encoder = encoder_layer(in_dropout)
 
-                n_out = data_in.shape[1]  # same no. of output units as input units (to reconstruct the signal)
-
-                decoder_layer = Dense(output_dim=n_out, bias=self.bias, init='glorot_uniform',
-                                      activation=self.dec_act[cur_layer], name='decoder' + str(cur_layer))
+                decoder_layer = Dense(units=data_in.shape[1],
+                                      kernel_initializer='glorot_uniform',
+                                      activation=self.dec_act[cur_layer],
+                                      name='decoder' + str(cur_layer),
+                                      use_bias=self.bias)
                 decoder = decoder_layer(encoder)
 
                 cur_model = Model(input_layer, decoder)
@@ -109,19 +106,21 @@ class StackedDenoisingAE(object):
 
             print("Training layer " + str(cur_layer))
 
+            output_folder = dir_out+"-"+str(cur_layer)
+            tensorboard = TensorBoard(log_dir=output_folder,
+                                      write_graph=True,
+                                      update_freq='batch')
+
             # Early stopping to stop training when val loss increases for 1 epoch
             early_stopping = EarlyStopping(monitor='val_loss', patience=1, verbose=0)
-            
-            batch_generator = nn_utils.batch_generator(data_in, data_in, batch_size=self.batch_size, shuffle=True)
-            batch_validation = nn_utils.batch_generator(data_val, data_val, batch_size=self.batch_size, shuffle=False)
 
-            history = cur_model.fit_generator(batch_generator, 
-                                              callbacks=[early_stopping],
-                                              nb_epoch=self.nb_epoch,
-                                              samples_per_epoch=data_in.shape[0],
-                                              verbose=self.verbose,
-                                              validation_data=batch_validation,
-                                              validation_steps=data_val.shape[0])
+            cur_model.fit(x=data_in,
+                                    y=data_in,
+                                    callbacks=[early_stopping, tensorboard],
+                                    epochs=self.nb_epoch,
+                                    batch_size=self.batch_size,
+                                    shuffle=True,
+                                    validation_data=(data_val, data_val))  # does not affect training
 
             print("Layer " + str(cur_layer) + " has been trained")
 
