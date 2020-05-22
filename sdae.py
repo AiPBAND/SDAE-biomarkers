@@ -2,6 +2,7 @@
 @author madhumita
 """
 import numpy as np
+import os
 import nn_utils
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Model
@@ -115,16 +116,17 @@ class StackedDenoisingAE(object):
             early_stopping = EarlyStopping(monitor='val_loss', patience=1, verbose=0)
 
             cur_model.fit(x=data_in,
-                                    y=data_in,
-                                    callbacks=[early_stopping, tensorboard],
-                                    epochs=self.nb_epoch,
-                                    batch_size=self.batch_size,
-                                    shuffle=True,
-                                    validation_data=(data_val, data_val))  # does not affect training
+                          y=data_in,
+                          callbacks=[early_stopping, tensorboard],
+                          epochs=self.nb_epoch,
+                          batch_size=self.batch_size,
+                          shuffle=True,
+                          validation_data=(data_val, data_val))  # does not affect training
 
             print("Layer " + str(cur_layer) + " has been trained")
 
             model_layers[cur_layer] = cur_model
+            cur_model.save(os.path.join(output_folder, 'model'))
             encoders.append(cur_model.layers[-2])
 
             if cur_layer == 0:
@@ -146,7 +148,7 @@ class StackedDenoisingAE(object):
 
         self._write_sda_config(dir_out)
 
-        return model_layers, (data_in, data_val, data_test), recon_mse
+        return encoders, (data_in, data_val, data_test), recon_mse
 
     def _write_sda_config(self, dir_out):
         """

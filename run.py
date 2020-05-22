@@ -4,14 +4,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import normalize
 from datetime import datetime
 from sdae import StackedDenoisingAE
+import numpy as np
+from matplotlib import pyplot as plt
 
 FILE_NAME = "GEO_data_batch_corr_final"
 
 N_LAYERS = 3
-N_NODES = [2000, 1000, 100]
+N_NODES = [1000, 500, 100]
 DROPOUT = [0.1]
-BATCH_SIZE = 2
-EPOCHS = 10
+BATCH_SIZE = 3
+EPOCHS = 3
 TEST_RATIO = 0.15
 
 
@@ -32,16 +34,19 @@ def run_fit(output):
 
     model = StackedDenoisingAE(n_layers=N_LAYERS, n_hid=N_NODES, dropout=DROPOUT, nb_epoch=EPOCHS, batch_size=BATCH_SIZE)
 
-    model, data, recon_mse = model.get_pretrained_sda(x_train, x_test, x_test, dir_out=output)
+    encoders, data, recon_mse = model.get_pretrained_sda(x_train, x_test, x_test, dir_out=output)
 
-    """
-        for i, layer in enumerate(model):
-        w = layer.get_weights()
-        print(layer.name)
-        for j, arr in enumerate(w):
-            print(arr.shape)
-            np.savetxt('output/weights_{}{}_{}.txt'.format(i, j, arr.shape), arr)
-    """
+    weights = []
+    for level in encoders:
+        weights.append(level.get_weights()[0])
+    influence = np.linalg.multi_dot(weights)
+    print(influence.shape)
+
+    plt.imshow(influence[:500])
+    plt.show()
+    total = np.sum(influence,1)
+    plt.bar(range(len(total)), total)
+    plt.show()
 
 if __name__ == '__main__':
 
