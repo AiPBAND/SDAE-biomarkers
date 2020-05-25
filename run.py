@@ -10,10 +10,10 @@ from matplotlib import pyplot as plt
 FILE_NAME = "GEO_data_batch_corr_final"
 
 N_LAYERS = 3
-N_NODES = [1000, 500, 100]
+N_NODES = [2000, 1000, 100]
 DROPOUT = [0.1]
 BATCH_SIZE = 3
-EPOCHS = 3
+EPOCHS = 10
 TEST_RATIO = 0.15
 
 
@@ -23,6 +23,9 @@ def run_fit(output):
     assert len(DROPOUT) == N_LAYERS or len(DROPOUT) == 1
 
     dataframe = pd.read_pickle('data/pd/'+FILE_NAME)
+
+    print(dataframe.index)
+    print(dataframe.columns)
 
     data = dataframe.values
     data = normalize(data)
@@ -40,12 +43,20 @@ def run_fit(output):
     for level in encoders:
         weights.append(level.get_weights()[0])
     influence = np.linalg.multi_dot(weights)
-    print(influence.shape)
 
-    plt.imshow(influence[:500])
-    plt.show()
-    total = np.sum(influence,1)
-    plt.bar(range(len(total)), total)
+    influence = np.abs(influence)
+    total = np.sum(influence, 1)
+
+    total = np.abs(total)
+
+    sort_index = np.flip(np.argsort(total))
+
+    values = total[sort_index][:100]
+    gene_ids = dataframe.columns[sort_index][:100]
+
+    plt.figure(figsize=(13, 2))
+    plt.bar(range(len(values)), values, tick_label=gene_ids)
+    plt.xticks(rotation=90, fontsize=7)
     plt.show()
 
 if __name__ == '__main__':
