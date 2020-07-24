@@ -149,6 +149,9 @@ cython_debug/
 out
 gen
 
+# VS Code project files
+.vscode
+
 output/*
 !output/.gitkeep
 data/csv/*.csv
