@@ -22,8 +22,10 @@ class Autoencoder:
         self.encoder_act = encoder_act
         
         input_layer = Input(num_features)
+        self.normalization_layer = Normalization()
+        normalization_output = normalization_layer(input_layer)
         dropout_layer = Dropout(dropout_rate)
-        dropout_output = dropout_layer(input_layer)
+        dropout_output = dropout_layer(normalization_output)
 
         self.encoder_layer = Dense(units=self.num_hidden, activation=encoder_act)
         self.encoder_ouput = self.encoder_layer(dropout_output)
@@ -45,6 +47,9 @@ class Autoencoder:
         self.tsb = TensorBoard(log_dir=self.log_path, write_graph=True,
             update_freq='batch')
 
+    def pre_fit(dataset):
+        self.normalization_layer(dataset)
+    
     def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse', 
             optimizer='rmsprop', verbose=1):
         
