@@ -1,9 +1,11 @@
 import functools
 
 import numpy as np
+import pandas as pd
 import tensorflow as tf
-
+from sklearn.preprocessing import normalize
 from google.cloud import storage
+import os
 
 
 def download_blob(bucket_name, source_blob_name, file_path):
@@ -18,21 +20,16 @@ def download_blob(bucket_name, source_blob_name, file_path):
     print("Blob {} downloaded to {}.".format(source_blob_name, file_path))
 
 
-def load_gs_data(bucket_name, source_blob_name, file_path="./data/data.csv", 
-    batch_size=5, num_epochs=10, shuffle=True, **kwargs):
+def load_gs_data(bucket_name, source_blob_name, file_path="./data", **kwargs):
     
-    print("Initializing TF dataset...")
+    print("Initializing dataset...")
     
-    download_blob(bucket_name, source_blob_name, file_path)
+    save_path = os.path.join(file_path, source_blob_name)
+    
+    download_blob(bucket_name, source_blob_name, save_path)
 
-    dataset = tf.data.experimental.make_csv_dataset(file_path, 
-        batch_size=batch_size, num_epochs=num_epochs, **kwargs)
+    dataframe = pd.read_csv(save_path, header=0, index_col=0)
+    print("Loaded {} samples with {} features.".format(dataframe.shape[0], dataframe.shape[1]))
+
+    return dataframe
     
-    reconstruction_dataset = tf.data.Dataset.zip((dataset,dataset))
-    
-    return dataset, reconstruction_dataset
-    
-def show_batch(dataset):
-    for batch, label in dataset.take(1):
-        for key, value in batch.items():
-            print("{:20s}: {}".format(key,value.numpy()))
