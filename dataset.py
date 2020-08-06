@@ -20,7 +20,7 @@ def download_blob(bucket_name, source_blob_name, file_path):
     print("Blob {} downloaded to {}.".format(source_blob_name, file_path))
 
 
-def load_gs_data(bucket_name, source_blob_name, file_path="./data", **kwargs):
+def load_gs_data(bucket_name, source_blob_name, file_path, **kwargs):
     
     print("Initializing dataset...")
     
