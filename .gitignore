@@ -152,7 +152,8 @@ gen
 # VS Code project files
 .vscode
 
-output/*
-!output/.gitkeep
-data/csv/*.csv
-!data/csv/.gitkeep
+# exclude everything
+log_dir/*
+
+# exception to the rule
+!log_dir/.gitkeep 

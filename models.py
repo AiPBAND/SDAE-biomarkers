@@ -9,6 +9,9 @@ from datetime import datetime
 import os
 import neptune
 from neptunecontrib.monitoring.keras import NeptuneMonitor
+import logging
+
+logger = logging.getLogger("SDAE")
 
 class Autoencoder:
 
@@ -58,8 +61,12 @@ class Autoencoder:
             batch_size=batch_size, validation_data=(x_test, x_test))
         
         name = "autoencoder-{}".format(self.num_hidden)
+        
+        save_path = os.path.join(self.output_dir, name)
 
-        self.autoencoder_model.save(os.path.join(self.output_path, name))
+        self.autoencoder_model.save(save_path)
+        logger.info("Trained model saved at: {}".format(save_path))
+        neptune.log_artifact(save_path)
 
         return self._mse(x_train), self._mse(x_test)
 
@@ -108,7 +115,5 @@ class EncoderStack:
         self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, NeptuneMonitor()], 
             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
 
-        name = "encoder_stack"
-        self.model.save(os.path.join(self.output_path, name))
         
         return self._bce(x_train, y_train), self._bce(x_test, y_test)
