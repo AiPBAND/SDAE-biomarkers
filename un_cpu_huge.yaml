@@ -1,0 +1,16 @@
+# run-style.yaml
+command: python
+args:
+  - github_url: https://github.com/jgeofil/SDAE-biomarkers.git
+  - github_ref: master
+  - unsupervised.py
+mount:
+  - uploads/sdae:data
+machine-type: cpu-huge
+pip:
+  - pandas
+  - numpy<1.19.0
+  - scipy
+  - sklearn
+framework: tensorflow2
+verbose: true
