@@ -6,7 +6,7 @@ args:
   - unsupervised.py
 mount:
   - uploads/sdae:data
-machine-type: cpu
+machine-type: K80
 pip:
   - pandas
   - numpy<1.19.0

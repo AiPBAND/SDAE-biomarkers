@@ -26,7 +26,7 @@ parser.add_argument('--verbose', default=2, dest="VERBOSITY", type=int, choices=
 parser.add_argument('--tolerance', default=5, dest="PATIENCE", type=int, help='Tolenrance to the rate of improvment between each batch. Low values terminate quicker.')
 args = parser.parse_args()
 
-dataframe = pd.read_csv(data/GEO_features.csv)
+dataframe = pd.read_csv("./data/GEO_features.csv")
 data = dataframe.values
 data = normalize(data)
 
@@ -40,13 +40,14 @@ np.save(test_path, i_test)
 
 x_train, x_test = data[i_train], data[i_test]
 
-os.mkdir('./tb_logs')
+tensorboard_logs = './ts_logs'
+os.mkdir(tensorboard_logs)
 
 
 x_train_out, x_test_out = x_train, x_test
 for idx, num_hidden in enumerate(args["N_NODES"]):
     print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
-    encoder = Autoencoder(x_train_out.shape[1], num_hidden, os.environ['EXP_DIR'])
+    encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
 
     recon_mse = encoder.fit(x_train_out, x_test_out, batch_size=args["BATCH_SIZE"],
         num_epochs=args["EPOCHS"], verbose=args["VERBOSITY"], patience=args["PATIENCE"])

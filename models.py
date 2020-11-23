@@ -61,8 +61,7 @@ class Autoencoder:
         save_path = os.path.join(self.output_dir, name)
 
         self.autoencoder_model.save(save_path)
-        logger.info("Trained model saved at: {}".format(save_path))
-        neptune.log_artifact(save_path)
+        print("Trained model saved at: {}".format(save_path))
 
         return self._mse(x_train), self._mse(x_test)
 
@@ -108,7 +107,7 @@ class EncoderStack:
 
         early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
 
-        self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, NeptuneMonitor()],
+        self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb],
             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
 
 
