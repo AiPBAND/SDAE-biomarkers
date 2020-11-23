@@ -2,10 +2,7 @@ import tensorflow as tf
 import argparse
 import pandas as pd
 import numpy as np
-from datetime import datetime
-from models import Autoencoder, EncoderStack
-from tensorflow.keras.layers.experimental.preprocessing import Normalization
-from tensorflow.keras.utils import to_categorical
+from models import Autoencoder
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import normalize
 import os
