@@ -151,7 +151,8 @@ gen
 
 # VS Code project files
 .vscode
-
+.history
+.vs
 # exclude everything
 log_dir/*
 
