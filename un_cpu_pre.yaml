@@ -2,8 +2,6 @@
 command: python
 args:
   - unsupervised.py 
-  - github_url: https://github.com/jgeofil/SDAE-biomarkers.git
-  - github_ref: master
 mount:
   - uploads/sdae:data
 machine-type: cpu-pre
