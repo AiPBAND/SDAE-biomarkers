@@ -72,7 +72,7 @@ class Autoencoder:
         self.autoencoder_model.compile(loss=loss_fn, optimizer=optimizer)
 
         self.autoencoder_model.fit(x_train, x_train,
-            callbacks=[early_stop, self.tsb], epochs=num_epochs,
+            callbacks=[early_stop, self.tsb, LossAndErrorPrintingCallback()], epochs=num_epochs,
             batch_size=batch_size, validation_data=(x_test, x_test))
 
         name = "autoencoder-{}".format(self.num_hidden)

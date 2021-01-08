@@ -159,3 +159,5 @@ log_dir/*
 # exception to the rule
 !log_dir/.gitkeep 
 data/
+out/ts_logs
+out/*.npy
