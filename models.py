@@ -8,7 +8,7 @@ from tensorflow.keras.activations import sigmoid
 from datetime import datetime
 import os
 from typing import List
-from spell.metrics as metrics
+import spell.metrics as metrics
 
 class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
     def on_train_batch_end(self, batch, logs=None):
