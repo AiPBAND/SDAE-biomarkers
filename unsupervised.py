@@ -54,8 +54,8 @@ for idx, num_hidden in enumerate(args.N_NODES):
     print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
     print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
-    metrics.send('recon_mse_train_layer{}'.format(idx), recon_mse[0])
-    metrics.send('recon_mse_test_layer{}'.format(idx), recon_mse[1])
+    metrics.send_metric('recon_mse_train_layer{}'.format(idx), recon_mse[0])
+    metrics.send_metric('recon_mse_test_layer{}'.format(idx), recon_mse[1])
     
     model_path = os.path.join("encoders", "model_{}_{}".format(idx,num_hidden))
     encoder.encoder_model.save(model_path)
