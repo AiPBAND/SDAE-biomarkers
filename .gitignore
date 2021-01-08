@@ -146,7 +146,7 @@ cython_debug/
 # IntelliJ project files
 .idea
 *.iml
-out
+
 gen
 
 # VS Code project files
