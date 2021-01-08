@@ -8,6 +8,25 @@ from tensorflow.keras.activations import sigmoid
 from datetime import datetime
 import os
 from typing import List
+from spell import metrics
+
+class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
+    def on_train_batch_end(self, batch, logs=None):
+        print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
+        metrics.send('train_loss', logs["loss"])
+
+    def on_test_batch_end(self, batch, logs=None):
+        print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
+        metrics.send('test_loss', logs["loss"])
+
+    def on_epoch_end(self, epoch, logs=None):
+        print(
+            "The avasstoperage loss for epoch {} is {:7.2f} and mean absolute error is {:7.2f}.".format(
+                epoch, logs["loss"], logs["mean_absolute_error"]
+            )
+        )
+        metrics.send('epoch_loss', logs["loss"])
+        metrics.send('epoch_abs_error', logs["mean_absolute_error"])
 
 class Autoencoder:
 

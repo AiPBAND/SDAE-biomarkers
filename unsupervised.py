@@ -51,8 +51,8 @@ for idx, num_hidden in enumerate(args.N_NODES):
     x_train_out = encoder.encoder_model.predict(x_train_out)
     x_test_out = encoder.encoder_model.predict(x_test_out)
 
-    print.info("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
-    print.info("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
+    print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
+    print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
     metrics.send('recon_mse_train_layer{}'.format(idx), recon_mse[0])
     metrics.send('recon_mse_test_layer{}'.format(idx), recon_mse[1])
