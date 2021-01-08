@@ -13,11 +13,11 @@ import spell.metrics as metrics
 class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
     def on_train_batch_end(self, batch, logs=None):
         print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
-        metrics.send('train_loss', logs["loss"])
+        metrics.send_metrics('train_loss', logs["loss"])
 
     def on_test_batch_end(self, batch, logs=None):
         print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
-        metrics.send('test_loss', logs["loss"])
+        metrics.send_metrics('test_loss', logs["loss"])
 
     def on_epoch_end(self, epoch, logs=None):
         print(
@@ -25,8 +25,8 @@ class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
                 epoch, logs["loss"], logs["mean_absolute_error"]
             )
         )
-        metrics.send('epoch_loss', logs["loss"])
-        metrics.send('epoch_abs_error', logs["mean_absolute_error"])
+        metrics.send_metrics('epoch_loss', logs["loss"])
+        metrics.send_metrics('epoch_abs_error', logs["mean_absolute_error"])
 
 class Autoencoder:
 
