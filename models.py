@@ -20,13 +20,7 @@ class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
         metrics.send_metric('test_loss', logs["loss"])
 
     def on_epoch_end(self, epoch, logs=None):
-        print(
-            "The avasstoperage loss for epoch {} is {:7.2f} and mean absolute error is {:7.2f}.".format(
-                epoch, logs["loss"], logs["mean_absolute_error"]
-            )
-        )
         metrics.send_metric('epoch_loss', logs["loss"])
-        metrics.send_metric('epoch_abs_error', logs["mean_absolute_error"])
 
 class Autoencoder:
 
