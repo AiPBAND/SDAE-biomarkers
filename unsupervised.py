@@ -16,11 +16,11 @@ parser.add_argument('--data-path', type=str,
 
 parser.add_argument('--num-nodes', default=[2000, 1000, 500], dest='N_NODES', metavar='N', type=int, nargs='+', help='Number of nodes in each layer.')
 parser.add_argument('--dropout', default=[0.1],dest='DROPOUT', type=int, nargs='+', help='Number of nodes in each layer.')
-parser.add_argument('--batch', default=15, dest='BATCH_SIZE', type=int, help='Number of samples per batch.')
-parser.add_argument('--epochs', default=20, dest='EPOCHS', type=int, help='Number of epochs.')
+parser.add_argument('--batch', default=5, dest='BATCH_SIZE', type=int, help='Number of samples per batch.')
+parser.add_argument('--epochs', default=10, dest='EPOCHS', type=int, help='Number of epochs.')
 parser.add_argument('--test', default=0.2, dest="TEST_RATIO", type=float, help='Ratio of samples kept out for testing.')
 parser.add_argument('--verbose', default=1, dest="VERBOSITY", type=int, choices=[0,1,2], help='Verbosity level: 0 None, 1 Info, 2 All')
-parser.add_argument('--tolerance', default=5, dest="PATIENCE", type=int, help='Tolenrance to the rate of improvment between each batch. Low values terminate quicker.')
+parser.add_argument('--tolerance', default=3, dest="PATIENCE", type=int, help='Tolenrance to the rate of improvment between each batch. Low values terminate quicker.')
 args = parser.parse_args()
 
 dataframe = pd.read_csv("./data/GEO_features.csv",index_col=0)
@@ -54,8 +54,8 @@ for idx, num_hidden in enumerate(args.N_NODES):
     print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
     print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
-    metrics.send_metric('recon_mse_train_layer{}'.format(idx), recon_mse[0])
-    metrics.send_metric('recon_mse_test_layer{}'.format(idx), recon_mse[1])
+    metrics.send_metric('trained_layer_mse', recon_mse[0])
+    metrics.send_metric('test_layer_mse', recon_mse[1])
     
     model_path = os.path.join("encoders", "model_{}_{}".format(idx,num_hidden))
     encoder.encoder_model.save(model_path)
