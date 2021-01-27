@@ -8,19 +8,9 @@ from tensorflow.keras.activations import sigmoid
 from datetime import datetime
 import os
 from typing import List
-import spell.metrics as metrics
+from comet_ml import Experiment
 
-class LossAndErrorPrintingCallback(tf.keras.callbacks.Callback):
-    def on_train_batch_end(self, batch, logs=None):
-        print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
-        metrics.send_metric('train_loss', logs["loss"])
 
-    def on_test_batch_end(self, batch, logs=None):
-        print("For batch {}, loss is {:7.2f}.".format(batch, logs["loss"]))
-        metrics.send_metric('test_loss', logs["loss"])
-
-    def on_epoch_end(self, epoch, logs=None):
-        metrics.send_metric('epoch_loss', logs["loss"])
 
 class Autoencoder:
 
@@ -57,7 +47,7 @@ class Autoencoder:
             update_freq='batch')
 
     def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse',
-            optimizer='rmsprop', verbose=1, patience=1):
+            optimizer='rmsprop', verbose=1, patience=1, cb=None):
 
         self.set_output_path()
 
@@ -65,8 +55,9 @@ class Autoencoder:
 
         self.autoencoder_model.compile(loss=loss_fn, optimizer=optimizer)
 
+        cb=Experiment.get_keras_callback()
         self.autoencoder_model.fit(x_train, x_train,
-            callbacks=[early_stop, self.tsb, LossAndErrorPrintingCallback()], epochs=num_epochs,
+            callbacks=[early_stop, self.tsb, cb,], epochs=num_epochs,
             batch_size=batch_size, validation_data=(x_test, x_test))
 
         name = "autoencoder-{}".format(self.num_hidden)
