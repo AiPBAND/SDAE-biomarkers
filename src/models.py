@@ -8,8 +8,7 @@ from tensorflow.keras.activations import sigmoid
 from datetime import datetime
 import os
 from typing import List
-from comet_ml import Experiment
-
+from wandb.keras import WandbCallback
 
 
 class Autoencoder:
@@ -55,9 +54,8 @@ class Autoencoder:
 
         self.autoencoder_model.compile(loss=loss_fn, optimizer=optimizer)
 
-        cb=Experiment.get_keras_callback()
         self.autoencoder_model.fit(x_train, x_train,
-            callbacks=[early_stop, self.tsb, cb,], epochs=num_epochs,
+            callbacks=[early_stop, self.tsb, WandbCallback()], epochs=num_epochs,
             batch_size=batch_size, validation_data=(x_test, x_test))
 
         name = "autoencoder-{}".format(self.num_hidden)
@@ -111,7 +109,7 @@ class EncoderStack:
 
         early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
 
-        self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb],
+        self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, WandbCallback()],
             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
 
 

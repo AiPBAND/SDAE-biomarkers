@@ -4,7 +4,8 @@ from setuptools import setup
 REQUIRED_PACKAGES = ['tensorflow>2.2',
                      'pandas',
                      'argparse',
-                     'sklearn']
+                     'sklearn',
+                     'python-decouple']
 
 setup(
     name='unsupervised',
@@ -19,4 +20,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     description='SDAE'
+    moduleName='unsupervised/task'
 )

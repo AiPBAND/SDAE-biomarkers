@@ -1,19 +1,21 @@
 # Import comet_ml at the top of your file
-from comet_ml import Experiment
-
-
-
-
 import tensorflow as tf
 import argparse
 import pandas as pd
 import numpy as np
 from models import Autoencoder
+from src import download_blob
 from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import normalize
 import os
-from config import config
+from decouple import config as env_config
 
+import wandb
+from wandb.keras import WandbCallback
+
+wandb.login()
+
+wandb.init(project='bio-unsupervised', entity='aipband')
 
 
 parser = argparse.ArgumentParser()
@@ -75,20 +77,13 @@ parser.add_argument(
     type=int,
     help="Tolenrance to the rate of improvment between each batch. Low values terminate quicker.",
 )
+
+config = wandb.config
 args = parser.parse_args()
+wandb.config.update(args)
 
-# Report multiple hyperparameters using a dictionary:
-hyper_params = {
-    "num-nodes": args.N_NODES,
-    "dropout": args.DROPOUT,
-    "batch_size": args.BATCH_SIZE,
-    "epochs": args.EPOCHS,
-    "test_ratio": args.TEST_RATIO,
-    "tolerance": args.PATIENCE,
-}
-
-dataframe = pd.read_csv("./data/GEO_features.csv", index_col=0)
-data = dataframe.values
+dataframe = pd.read_csv(args.DATA_PATH, index_col=0)
+data = dataframe.values[1,-2]
 data = normalize(data)
 
 rs = ShuffleSplit(n_splits=1, test_size=args.TEST_RATIO, random_state=0)
@@ -106,30 +101,28 @@ tensorboard_logs = "./out/ts_logs"
 
 x_train_out, x_test_out = x_train, x_test
 for idx, num_hidden in enumerate(args.N_NODES):
-    experiment = Experiment(**config)
-    experiment.log_parameters(hyper_params)
 
-    with experiment.train():
-        print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
-        encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
+    print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
+    encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
 
-        recon_mse = encoder.fit(
-            x_train_out,
-            x_test_out,
-            batch_size=args.BATCH_SIZE,
-            num_epochs=args.EPOCHS,
-            verbose=args.VERBOSITY,
-            patience=args.PATIENCE,
-        )
+    recon_mse = encoder.fit(
+        x_train_out,
+        x_test_out,
+        batch_size=args.BATCH_SIZE,
+        num_epochs=args.EPOCHS,
+        verbose=args.VERBOSITY,
+        patience=args.PATIENCE,
+    )
 
-    with experiment.test():
-        x_train_out = encoder.encoder_model.predict(x_train_out)
-        x_test_out = encoder.encoder_model.predict(x_test_out)
+    x_train_out = encoder.encoder_model.predict(x_train_out)
+    x_test_out = encoder.encoder_model.predict(x_test_out)
 
-        print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
-        print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
+    print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
+    print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
-        experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
+    experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
 
     model_path = os.path.join("encoders", "model_{}_{}".format(idx, num_hidden))
     encoder.encoder_model.save(model_path)
+
+    wandb.save("mymodel.h5")
