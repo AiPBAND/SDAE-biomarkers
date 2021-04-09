@@ -1,10 +1,3 @@
-# Configuration
-## Authentication
-
-First paste the key in the JSON file. 
-
-```shell
-
 
 # AiPBAND deliverable 5.3 projects
 
