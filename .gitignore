@@ -163,4 +163,5 @@ out/ts_logs
 out/*.npy
 
 secret_key.json
-*.csv
+
+wandb/*
