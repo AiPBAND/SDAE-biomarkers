@@ -1,0 +1,62 @@
+diff --git a/src/models.py b/src/models.py
+index 2a942e3..29fcd74 100644
+--- a/src/models.py
++++ b/src/models.py
+@@ -112,5 +112,5 @@ class EncoderStack:
+         self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, WandbCallback()],
+             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
+ 
+-
++ 
+         return self._bce(x_train, y_train), self._bce(x_test, y_test)
+\ No newline at end of file
+diff --git a/src/trainer/supervised/task.py b/src/trainer/supervised/task.py
+index 3a9eca1..5b1ae61 100644
+--- a/src/trainer/supervised/task.py
++++ b/src/trainer/supervised/task.py
+@@ -20,7 +20,11 @@ from wandb.keras import WandbCallback
+ 
+ wandb.login()
+ 
+-wandb.init(project='bio-tuning', entity='aipband')
++wandb.init(project='bio-tuning',
++           entity='aipband',
++           save_code=True,
++           group="supervised",
++           magic=True,
+ 
+ parser = argparse.ArgumentParser()
+ 
+@@ -40,7 +44,11 @@ parser.add_argument(
+     help="Number of samples per batch.",
+ )
+ parser.add_argument(
+-    "--epochs", default=10, dest="EPOCHS", type=int, help="Number of epochs."
++    "--epochs", 
++    default=10, 
++    dest="EPOCHS",
++     type=int, 
++     help="Number of epochs."
+ )
+ 
+ config = wandb.config
+diff --git a/src/trainer/unsupervised/task.py b/src/trainer/unsupervised/task.py
+index 732cc18..5983401 100644
+--- a/src/trainer/unsupervised/task.py
++++ b/src/trainer/unsupervised/task.py
+@@ -9,15 +9,11 @@ from sklearn.model_selection import ShuffleSplit
+ from sklearn.preprocessing import normalize
+ import os
+ from decouple import config as env_config
+-
+ import wandb
+ from wandb.keras import WandbCallback
+ 
+ wandb.login()
+-
+ wandb.init(project='bio-unsupervised', entity='aipband')
+-
+-
+ parser = argparse.ArgumentParser()
+ 
+ parser.add_argument(

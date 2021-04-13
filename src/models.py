@@ -112,5 +112,5 @@ class EncoderStack:
         self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, WandbCallback()],
             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
 
-
+ 
         return self._bce(x_train, y_train), self._bce(x_test, y_test)

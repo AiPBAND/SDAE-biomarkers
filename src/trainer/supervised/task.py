@@ -20,7 +20,11 @@ from wandb.keras import WandbCallback
 
 wandb.login()
 
-wandb.init(project='bio-tuning', entity='aipband')
+wandb.init(project='bio-tuning',
+           entity='aipband',
+           save_code=True,
+           group="supervised",
+           magic=True,
 
 parser = argparse.ArgumentParser()
 
@@ -40,7 +44,11 @@ parser.add_argument(
     help="Number of samples per batch.",
 )
 parser.add_argument(
-    "--epochs", default=10, dest="EPOCHS", type=int, help="Number of epochs."
+    "--epochs", 
+    default=10, 
+    dest="EPOCHS",
+     type=int, 
+     help="Number of epochs."
 )
 
 config = wandb.config

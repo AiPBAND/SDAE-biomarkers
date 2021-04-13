@@ -1,0 +1,106 @@
+diff --git a/credentials/secret_key_EMPTY_KEY.json b/platforms IN HERE/google/credentials/secret_key_EMPTY_KEY.json
+similarity index 100%
+rename from credentials/secret_key_EMPTY_KEY.json
+rename to platforms IN HERE/google/credentials/secret_key_EMPTY_KEY.json
+diff --git a/platforms/google/tasks.sh b/platforms IN HERE/google/tasks.sh
+similarity index 100%
+rename from platforms/google/tasks.sh
+rename to platforms IN HERE/google/tasks.sh
+diff --git a/platforms/wandb/upload_artefact.py b/platforms IN HERE/wandb  THIS ONE/THATupload_artefact.py
+similarity index 100%
+rename from platforms/wandb/upload_artefact.py
+rename to platforms IN HERE/wandb  THIS ONE/THATupload_artefact.py
+diff --git a/platforms IN HERE/wandb  THIS ONE/__init__.py b/platforms IN HERE/wandb  THIS ONE/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/models.py b/src/models.py
+index 2a942e3..29fcd74 100644
+--- a/src/models.py
++++ b/src/models.py
+@@ -112,5 +112,5 @@ class EncoderStack:
+         self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, WandbCallback()],
+             epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
+ 
+-
++ 
+         return self._bce(x_train, y_train), self._bce(x_test, y_test)
+\ No newline at end of file
+diff --git a/src/trainer/supervised/task.py b/src/trainer/supervised/task.py
+index 7ae586c..5b1ae61 100644
+--- a/src/trainer/supervised/task.py
++++ b/src/trainer/supervised/task.py
+@@ -2,7 +2,7 @@ import tensorflow as tf
+ print(tf.__version__)
+ import pandas as pd
+ import numpy as np
+-from ../src/models import EncoderStack
++from src.models import EncoderStack
+ from tensorflow.keras.layers.experimental.preprocessing import Normalization
+ from tensorflow.keras.utils import to_categorical
+ from sklearn.model_selection import ShuffleSplit
+@@ -20,7 +20,11 @@ from wandb.keras import WandbCallback
+ 
+ wandb.login()
+ 
+-wandb.init(project='bio-tuning', entity='aipband')
++wandb.init(project='bio-tuning',
++           entity='aipband',
++           save_code=True,
++           group="supervised",
++           magic=True,
+ 
+ parser = argparse.ArgumentParser()
+ 
+@@ -40,14 +44,20 @@ parser.add_argument(
+     help="Number of samples per batch.",
+ )
+ parser.add_argument(
+-    "--epochs", default=10, dest="EPOCHS", type=int, help="Number of epochs."
++    "--epochs", 
++    default=10, 
++    dest="EPOCHS",
++     type=int, 
++     help="Number of epochs."
+ )
+ 
+ config = wandb.config
+ args = parser.parse_args()
+ wandb.config.update(args)
+ 
+-dataframe = dataset.load_gs_data(config['DATA_BUCKET'], config['DATA_OBJECT'], os.environ['EXP_DIR'])
++dataframe = pd.read_csv(args.DATA_PATH, index_col=0)
++data = dataframe.values[1:]
++data = normalize(data)
+ 
+ x = datframe[:-2]
+ y =  to_categorical(datframe[-2])
+@@ -57,4 +67,8 @@ sorted(cv_results.keys())
+ wrap = lambda x,y = EncoderStack(encoder_models, 'output/').fit(x_train, y_train, x_test, y_test, batch_size=BATCH_SIZE, num_epochs=EPOCHS)
+ scores = cross_validate(wrap, X, y, cv=3, scoring=('r2', 'neg_mean_squared_error'), return_train_score=True)
+ 
++wandb.log('cross_val_scores', scores)
++wandb.log('avg_score', mean(scores))
++wandb.log('min_score', min(scores))
++wandb.log('max_score', max(scores))
+ wandb.save("mymodel.h5")
+\ No newline at end of file
+diff --git a/src/trainer/unsupervised/task.py b/src/trainer/unsupervised/task.py
+index 732cc18..5983401 100644
+--- a/src/trainer/unsupervised/task.py
++++ b/src/trainer/unsupervised/task.py
+@@ -9,15 +9,11 @@ from sklearn.model_selection import ShuffleSplit
+ from sklearn.preprocessing import normalize
+ import os
+ from decouple import config as env_config
+-
+ import wandb
+ from wandb.keras import WandbCallback
+ 
+ wandb.login()
+-
+ wandb.init(project='bio-unsupervised', entity='aipband')
+-
+-
+ parser = argparse.ArgumentParser()
+ 
+ parser.add_argument(

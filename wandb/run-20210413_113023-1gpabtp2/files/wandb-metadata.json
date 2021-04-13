@@ -1,0 +1,24 @@
+{
+    "os": "Windows-10-10.0.19041-SP0",
+    "python": "3.8.8",
+    "heartbeatAt": "2021-04-13T09:30:29.213574",
+    "startedAt": "2021-04-13T09:30:23.918404",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "gpu_count": 2,
+    "cpu_count": 16,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "c:\\Users\\jerem\\Documents\\Repositories\\SDAE-biomarkers\\platforms IN HERE\\wandb  THIS ONE\\THATupload_artefact.py",
+    "codePath": "platforms IN HERE\\wandb  THIS ONE\\THATupload_artefact.py",
+    "git": {
+        "remote": "https://github.com/AiPBAND/SDAE-biomarkers.git",
+        "commit": "77ed2be11e20c6e41599dc6778b17d670f9fe7c9"
+    },
+    "email": "jeremy.geo@gmail.com",
+    "root": "C:/Users/jerem/Documents/Repositories/SDAE-biomarkers",
+    "host": "DESKTOP-0H46NMQ",
+    "username": "jerem",
+    "executable": "C:\\Users\\jerem\\AppData\\Local\\Programs\\Python\\Python38\\python.exe"
+}

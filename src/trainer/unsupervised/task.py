@@ -9,15 +9,11 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.preprocessing import normalize
 import os
 from decouple import config as env_config
-
 import wandb
 from wandb.keras import WandbCallback
 
 wandb.login()
-
 wandb.init(project='bio-unsupervised', entity='aipband')
-
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
