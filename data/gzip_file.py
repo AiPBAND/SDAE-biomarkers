@@ -1,8 +1,8 @@
 import gzip
 import shutil, os
 
-PATH = "C:/Users/jerem/Documents/"
-FILE="uni_exp_data_MA_7.csv"
+PATH = "C:/Users/jerem/Downloads"
+FILE="gene_exp_MA.csv"
 FILE_PATH = os.path.join(PATH, FILE)
 FILE_ZIP = os.path.join("data/compressed", FILE+".gz")
 
