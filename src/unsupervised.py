@@ -90,10 +90,10 @@ data = normalize(data)
 rs = ShuffleSplit(n_splits=1, test_size=args.TEST_RATIO, random_state=0)
 split_itterator = rs.split(data)
 i_train, i_test = next(split_itterator)
-train_path = os.path.join("./out", "train_indices.npy")
-test_path = os.path.join("./out", "test_indices.npy")
-np.save(train_path, i_train)
-np.save(test_path, i_test)
+artifact = wandb.Artifact('train_test_split', type='dataset')
+artifact.add_file(i_train, name="training_indices")
+artifact.add_file(i_test, name="test_indices")
+wandb.run.log_artifact(artifact) 
 
 x_train, x_test = data[i_train], data[i_test]
 
