@@ -79,6 +79,9 @@ args = parser.parse_args()
 wandb.config.update(args)
 
 run = wandb.init()
+wandb.tensorboard.patch(save=True, tensorboardX=True)
+
+
 artifact = run.use_artifact('input_tables:latest')
 artifact_dir = artifact.download()
 
@@ -99,7 +102,7 @@ x_train, x_test = data[i_train], data[i_test]
 
 tensorboard_logs = "./out/ts_logs"
 
-
+ 
 x_train_out, x_test_out = x_train, x_test
 for idx, num_hidden in enumerate(args.N_NODES):
 
@@ -114,11 +117,18 @@ for idx, num_hidden in enumerate(args.N_NODES):
         verbose=args.VERBOSITY,
         patience=args.PATIENCE,
     )
+    
+    recon_train = recon_mse[0]
+    recon_test = recon_mse[1]
+    
+    artifact.add_file(recon_train, name="epoch_recon_err_train")
+    artifact.add_file(recon_test, name="epoch_recon_err_train")
+    wandb.run.log_artifact(artifact)    
 
     x_train_out = encoder.encoder_model.predict(x_train_out)
     x_test_out = encoder.encoder_model.predict(x_test_out)
 
-    print("Training losss for layer {}: {} ".format(idx, recon_mse[0]))
+    print("Training loss for layer {}: {} ".format(idx, recon_mse[0]))
     print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
     experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
@@ -127,3 +137,5 @@ for idx, num_hidden in enumerate(args.N_NODES):
     encoder.encoder_model.save(model_path)
 
     wandb.save("mymodel.h5")
+    
+    
