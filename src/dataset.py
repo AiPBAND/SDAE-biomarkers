@@ -76,14 +76,16 @@ sss = sss.split(dataframe, labels)
 data = {"train":[], 
         "test":[], 
         "train_labels":[], 
-        "test_labels":[]}
+        "test_labels":[],
+        "validation": validation,
+        "validation_labels":validation_labels}
 for train_i, test_i in sss:
     data["train"].append(dataframe[train_i])
     data["test"].append(dataframe[test_i])
     data["train_labels"].append(labels[train_i])
     data["test_labels"].append(labels[test_i])
 
-artifact = wandb.Artifact("input_tables", type="dataset")
+artifact = wandb.Artifact("data_splits", type="dataset")
 
 np.save("temp_file", data) 
 artifact.add_file("temp_file.npy", name="split_data", is_tmp=True) 

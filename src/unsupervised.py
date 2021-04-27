@@ -79,29 +79,18 @@ args = parser.parse_args()
 wandb.config.update(args)
 
 run = wandb.init()
-wandb.tensorboard.patch(save=True, tensorboardX=True)
-
-
-artifact = run.use_artifact('input_tables:latest')
-artifact_dir = artifact.download()
-
-
-dataframe = pd.read_csv("gene_exp_MA.csv", index_col=0)
-data = dataframe.values[1:-2,:]
-data = normalize(data)
-
-rs = ShuffleSplit(n_splits=1, test_size=args.TEST_RATIO, random_state=0)
-split_itterator = rs.split(data)
-i_train, i_test = next(split_itterator)
-artifact = wandb.Artifact('train_test_split', type='dataset')
-artifact.add_file(i_train, name="training_indices")
-artifact.add_file(i_test, name="test_indices")
-wandb.run.log_artifact(artifact) 
-
-x_train, x_test = data[i_train], data[i_test]
-
+wandb.tensorboard.patch(save=True, tensorboardX=True) 
 tensorboard_logs = "./out/ts_logs"
 
+artifact = run.use_artifact('split_data:latest')
+artifact_dir = artifact.download()
+
+data = np.load(split_data.npy)
+
+x_train, x_test = data["train"], data["test"], data["validation"]
+
+
+for X, y, val in x_train:
  
 x_train_out, x_test_out = x_train, x_test
 for idx, num_hidden in enumerate(args.N_NODES):
