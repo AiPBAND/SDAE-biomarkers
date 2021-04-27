@@ -165,4 +165,4 @@ out/*.npy
 secret_key.json
 
 wandb/*
-temp_file
+temp_file*

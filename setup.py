@@ -4,11 +4,10 @@ from setuptools import setup
 REQUIRED_PACKAGES = ['tensorflow>2.2',
                      'pandas',
                      'argparse',
-                     'sklearn',
-                     'python-decouple']
+                     'sklearn']
 
 setup(
-    name='unsupervised',
+    name='SDAE_biomarkers',
     author=[
         'Jeremy Georges-Filteau',
         'Birbal Prasad'
