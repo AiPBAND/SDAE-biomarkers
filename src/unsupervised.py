@@ -82,45 +82,44 @@ run = wandb.init()
 wandb.tensorboard.patch(save=True, tensorboardX=True) 
 tensorboard_logs = "./out/ts_logs"
 
-artifact = run.use_artifact('split_data:latest')
+artifact = run.use_artifact('data_splits:latest')
 artifact_dir = artifact.download()
 
 data = np.load(split_data.npy)
 
-x_train, x_test = data["train"], data["test"], data["validation"]
+x_train, x_test,  x_val = data["train"], data["test"], data["validation"]
 
-
-for X, y, val in x_train:
+for X, y, val in zip(x_train, x_test):
  
-x_train_out, x_test_out = x_train, x_test
-for idx, num_hidden in enumerate(args.N_NODES):
+    X_out, y_out = X, y
+    for idx, num_hidden in enumerate(args.N_NODES):
 
-    print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
-    encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
+        print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
+        encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
 
-    recon_mse = encoder.fit(
-        x_train_out,
-        x_test_out,
-        batch_size=args.BATCH_SIZE,
-        num_epochs=args.EPOCHS,
-        verbose=args.VERBOSITY,
-        patience=args.PATIENCE,
-    )
-    
-    recon_train = recon_mse[0]
-    recon_test = recon_mse[1]
-    
-    artifact.add_file(recon_train, name="epoch_recon_err_train")
-    artifact.add_file(recon_test, name="epoch_recon_err_train")
-    wandb.run.log_artifact(artifact)    
+        recon_mse = encoder.fit(
+            X,
+            y,
+            batch_size=args.BATCH_SIZE,
+            num_epochs=args.EPOCHS,
+            verbose=args.VERBOSITY,
+            patience=args.PATIENCE,
+        )
+        
+        recon_train = recon_mse[0]
+        recon_test = recon_mse[1]
+        
+        artifact.add_file(recon_train, name="epoch_recon_err_train")
+        artifact.add_file(recon_test, name="epoch_recon_err_train")
+        wandb.run.log_artifact(artifact)    
 
-    x_train_out = encoder.encoder_model.predict(x_train_out)
-    x_test_out = encoder.encoder_model.predict(x_test_out)
+        x_train_out = encoder.encoder_model.predict(x_train_out)
+        x_test_out = encoder.encoder_model.predict(x_test_out)
 
-    print("Training loss for layer {}: {} ".format(idx, recon_mse[0]))
-    print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
+        print("Training loss for layer {}: {} ".format(idx, recon_mse[0]))
+        print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
 
-    experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
+        experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
 
     model_path = os.path.join("encoders", "model_{}_{}".format(idx, num_hidden))
     encoder.encoder_model.save(model_path)

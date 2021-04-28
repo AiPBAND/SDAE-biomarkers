@@ -9,11 +9,16 @@ from sklearn.preprocessing import normalize
 import os 
 import wandb
 from wandb.keras import WandbCallback
-from random import random
+import random
 from tempfile import TemporaryFile
 import gzip
-
+from collections import Counter
+from pprint import pprint
 #os.environ["WANDB_MODE"] = "offline"
+
+SEED = random.seed()
+
+
 parser = argparse.ArgumentParser() 
 parser.add_argument(
     "--data-path",
@@ -34,7 +39,7 @@ parser.add_argument(
 parser.add_argument(
     "--validate",
     default=0.1,
-    dest="VALIDATION_COUNT",
+    dest="VALIDATION_RATIO",
     type=float,
     help="Number of samples kept out for validation.",
 )
@@ -57,6 +62,7 @@ run = wandb.init(project='SDAE-biomarkers',
 
 args=parser.parse_args()
 wandb.config.update(args)
+wandb.log({'random_seed': SEED})
 
 with gzip.open(args.FILE_PATH, 'rb') as f_in: 
     data = pd.read_csv(f_in, index_col=0) 
@@ -64,13 +70,19 @@ dataframe = data.values[:,1:-2]
 labels = data.values[:,-1]    
 dataframe = normalize(data)
 
-sss = StratifiedShuffleSplit(n_splits=1, test_size=args.VALIDATION_COUNT, random_state=0)
+pprint({"total_samples": len(dataframe)})
+
+sss = StratifiedShuffleSplit(n_splits=1, test_size=args.VALIDATION_RATIO, random_state=SEED)
 i_train_test, i_validation = next(sss.split(dataframe, labels))
 
 train_test_set, validation = dataframe[i_train_test], dataframe[i_validation]
 train_test_labels, validation_labels = labels[i_train_test], labels[i_validation]
+pprint({'validation_indices': i_validation, 
+           'validation_labels':Counter(validation_labels), 
+           'validation_ratio': args.VALIDATION_RATIO, 
+           'validation_count': len(validation_labels)})
 
-sss = StratifiedShuffleSplit(n_splits=5, test_size=args.TEST_RATIO, random_state=0)
+sss = StratifiedShuffleSplit(n_splits=5, test_size=args.TEST_RATIO, random_state=SEED)
 sss = sss.split(dataframe, labels)
 
 data = {"train":[], 
@@ -79,7 +91,13 @@ data = {"train":[],
         "test_labels":[],
         "validation": validation,
         "validation_labels":validation_labels}
-for train_i, test_i in sss:
+for i, (train_i, test_i) in enumerate(sss):
+    
+    pprint({'split': {
+        'split_id': i,
+        'data_labels':Counter(labels[test_i]), 
+        'test_count': len(test_i)}})
+    
     data["train"].append(dataframe[train_i])
     data["test"].append(dataframe[test_i])
     data["train_labels"].append(labels[train_i])
