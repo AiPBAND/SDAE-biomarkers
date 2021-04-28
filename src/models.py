@@ -45,20 +45,22 @@ class Autoencoder:
         self.tsb = TensorBoard(log_dir=self.output_dir, write_graph=True,
             update_freq='batch')
 
-    def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse',
-            optimizer='rmsprop', verbose=1, patience=1, cb=None):
+    def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse', metrics
+            optimizer='rmsprop', verbose=1, patience=1, cb=None, validation_data=None):
 
         self.set_output_path()
 
         early_stop = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
 
-        self.autoencoder_model.compile(loss=loss_fn, optimizer=optimizer)
+        self.autoencoder_model.compile(loss=loss_fn,
+                                        metrics=[], 
+                                        optimizer=optimizer)
 
         self.autoencoder_model.fit(x_train, x_train,
             callbacks=[early_stop, self.tsb, WandbCallback()], epochs=num_epochs,
-            batch_size=batch_size, validation_data=(x_test, x_test))
+            batch_size=batch_size, validation_data=validation_data)
 
-        name = "autoencoder-{}".format(self.num_hidden)
+        
 
         save_path = os.path.join(self.output_dir, name)
 
@@ -94,23 +96,15 @@ class EncoderStack:
         self.output_path = os.path.join(self.output_dir, now)
         self.log_path = os.path.join(self.output_path, "log")
         self.tsb = TensorBoard(log_dir=self.log_path, write_graph=True,
-            update_freq='batch')
+            update_freq='step')
 
     def _bce(self, x, y):
         pred = self.model.predict(x)
         return self.bce_func(y, pred).numpy()
 
-    def fit(self, x_train, y_train, x_test, y_test, batch_size, num_epochs,
-        loss_fn='mse', optimizer='rmsprop', verbose=1):
+    def get(self):
 
         self.set_output_path()
+        self.name = "autoencoder-{}".format(self.num_hidden)
 
-        self.model.compile(loss=loss_fn, optimizer=optimizer)
-
-        early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
-
-        self.model.fit(x_train, y_train, callbacks=[early_stop, self.tsb, WandbCallback()],
-            epochs=num_epochs, batch_size=batch_size, validation_data=(x_test, y_test))
-
- 
-        return self._bce(x_train, y_train), self._bce(x_test, y_test)
+        return self.model

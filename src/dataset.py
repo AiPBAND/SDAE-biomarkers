@@ -16,7 +16,7 @@ from collections import Counter
 from pprint import pprint
 #os.environ["WANDB_MODE"] = "offline"
 
-SEED = random.seed()
+SEED = 0
 
 
 parser = argparse.ArgumentParser() 

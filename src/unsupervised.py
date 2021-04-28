@@ -77,53 +77,56 @@ parser.add_argument(
 config = wandb.config
 args = parser.parse_args()
 wandb.config.update(args)
-
-run = wandb.init()
 wandb.tensorboard.patch(save=True, tensorboardX=True) 
 tensorboard_logs = "./out/ts_logs"
 
-artifact = run.use_artifact('data_splits:latest')
-artifact_dir = artifact.download()
+for idx, num_hidden in enumerate(args.N_NODES):
 
-data = np.load(split_data.npy)
+    run = wandb.init()
+    if idx == 0:
+        artifact = run.use_artifact('data_splits:latest')
+    else:
+        artifact = run.use_artifact('data_layer_{}:latest'.format(idx))
+    artifact_dir = artifact.download()
+    data = np.load(split_data.npy)
 
-x_train, x_test,  x_val = data["train"], data["test"], data["validation"]
+    x_train, x_test,  x_val = data["train"], data["test"], data["validation"]
 
-for X, y, val in zip(x_train, x_test):
+
+    for X, X_text in zip(x_train, x_test):
  
-    X_out, y_out = X, y
-    for idx, num_hidden in enumerate(args.N_NODES):
-
+        X_out, X_test_out = X, X_test
         print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
-        encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs)
+        encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs).get()
 
-        recon_mse = encoder.fit(
+        encoder.compile(loss=loss_fn,
+                        metrics=[] 
+                        optimizer=optimizer)
+
+        early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
+
+        history = encoder.fit(
             X,
-            y,
+            X,
+            callbacks=[early_stop, self.tsb, WandbCallback()],
             batch_size=args.BATCH_SIZE,
             num_epochs=args.EPOCHS,
             verbose=args.VERBOSITY,
             patience=args.PATIENCE,
+            validation_data=(x_val, x_val)
         )
+        wandb.log(history)
+
+        result = encoder.evaluate(X_test)
         
-        recon_train = recon_mse[0]
-        recon_test = recon_mse[1]
-        
-        artifact.add_file(recon_train, name="epoch_recon_err_train")
-        artifact.add_file(recon_test, name="epoch_recon_err_train")
-        wandb.run.log_artifact(artifact)    
-
-        x_train_out = encoder.encoder_model.predict(x_train_out)
-        x_test_out = encoder.encoder_model.predict(x_test_out)
-
-        print("Training loss for layer {}: {} ".format(idx, recon_mse[0]))
-        print("Testing loss for layer {}: {} ".format(idx, recon_mse[1]))
-
-        experiment.log_metrics({"trained_layer_mse": recon_mse[0], "test_layer_mse": recon_mse[1]})
+        wandb.summary({'metrics': dict(zip(encoder.metrics_names, result)),
+                        'layer': encoder.encoder_layer.get_weights(),
+                        'name': encoder.name
+        })
 
     model_path = os.path.join("encoders", "model_{}_{}".format(idx, num_hidden))
     encoder.encoder_model.save(model_path)
 
-    wandb.save("mymodel.h5")
+    wandb.save("encoder.h5")
     
     
