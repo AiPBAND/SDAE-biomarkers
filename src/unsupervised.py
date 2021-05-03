@@ -11,9 +11,12 @@ import os
 from decouple import config as env_config
 import wandb
 from wandb.keras import WandbCallback
+from random import random
+
+os.environ["WANDB_MODE"] = "offline"
 
 wandb.login()
-wandb.init(project='SDAE-biomarkers', entity='aipband',job_type="model-training")
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument(
@@ -73,60 +76,70 @@ parser.add_argument(
     type=int,
     help="Tolenrance to the rate of improvment between each batch. Low values terminate quicker.",
 )
+parser.add_argument(
+    "--folds",
+    default=5,
+    dest="FOLDS",
+    type=int,
+    help="Number of cross-validation folds.",
+)
 
 config = wandb.config
 args = parser.parse_args()
 wandb.config.update(args)
-wandb.tensorboard.patch(save=True, tensorboardX=True) 
+wandb.tensorboard.patch(save=True, tensorboardX=True)
 tensorboard_logs = "./out/ts_logs"
 
+
 for idx, num_hidden in enumerate(args.N_NODES):
+    for idy in range(args.FOLDS):
+        cv_group_name = random.choice()
+        with wandb.init(project='SDAE-biomarkers', entity='aipband', job_type="training_layer_{}".format(idx), group="CVgroup_{}".format(idy) as run:
 
-    run = wandb.init()
-    if idx == 0:
-        artifact = run.use_artifact('data_splits:latest')
-    else:
-        artifact = run.use_artifact('data_layer_{}:latest'.format(idx))
-    artifact_dir = artifact.download()
-    data = np.load(split_data.npy)
+            if idx = 0:
+                artifact = run.use_artifact('data_splits:latest')
+                artifact_dir = artifact.download()  
+                data = np.load(split_data.npy)
+                X_out, X_text_out, X_val = data["train"][idy], data["test"][idy], data["validation"]
 
-    x_train, x_test,  x_val = data["train"], data["test"], data["validation"]
+            
 
+                X_out, X_test_out = X, X_test
+                print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
+                encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs).get()
 
-    for X, X_text in zip(x_train, x_test):
- 
-        X_out, X_test_out = X, X_test
-        print("Training layer {} with {} hidden nodes..".format(idx, num_hidden))
-        encoder = Autoencoder(x_train_out.shape[1], num_hidden, tensorboard_logs).get()
+                encoder.compile(loss=loss_fn,
+                                metrics=[tf.keras.metrics.KLDivergence(),tf.keras.metrics.MeanAbsoluteError(),tf.keras.metrics.MeanAbsolutePercentageError()]
+                                optimizer=optimizer)
 
-        encoder.compile(loss=loss_fn,
-                        metrics=[] 
-                        optimizer=optimizer)
+                early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
 
-        early_stop = EarlyStopping(monitor='val_loss', patience=1, verbose=2)
+                history = encoder.fit(
+                    X_out,
+                    X_out,
+                    callbacks=[early_stop, self.tsb, WandbCallback()],
+                    batch_size=args.BATCH_SIZE,
+                    num_epochs=args.EPOCHS,
+                    verbose=args.VERBOSITY,
+                    patience=args.PATIENCE,
+                    validation_data=(x_val, x_val)
+                )
+                wandb.log(history)
 
-        history = encoder.fit(
-            X,
-            X,
-            callbacks=[early_stop, self.tsb, WandbCallback()],
-            batch_size=args.BATCH_SIZE,
-            num_epochs=args.EPOCHS,
-            verbose=args.VERBOSITY,
-            patience=args.PATIENCE,
-            validation_data=(x_val, x_val)
-        )
-        wandb.log(history)
+                result = encoder.evaluate(X_test)
 
-        result = encoder.evaluate(X_test)
-        
-        wandb.summary({'metrics': dict(zip(encoder.metrics_names, result)),
-                        'layer': encoder.encoder_layer.get_weights(),
-                        'name': encoder.name
-        })
+                wandb.summary({'metrics': dict(zip(encoder.metrics_names, result)),
+                                'layer': encoder.encoder_layer.get_weights(),
+                                'name': encoder.name
+                })
 
-    model_path = os.path.join("encoders", "model_{}_{}".format(idx, num_hidden))
-    encoder.encoder_model.save(model_path)
+            model_path = os.path.join("encoders", "model_{}_{}".format(idx, num_hidden))
+            encoder.encoder_model.save(model_path)
 
-    wandb.save("encoder.h5")
-    
-    
+            wandb.save("encoder.h5")
+
+            artifact = wandb.Artifact("data_splits", type="dataset")
+
+            np.save("temp_file", data)
+            artifact.add_file("temp_file.npy", name="split_data", is_tmp=True)
+            wandb.run.log_artifact(artifact)

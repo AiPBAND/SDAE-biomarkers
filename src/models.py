@@ -16,6 +16,8 @@ class Autoencoder:
     def __init__(self, num_features, num_hidden, output_dir, dropout_rate=0.05,
         encoder_act='sigmoid', decoder_act='linear'):
 
+        self.name = "AElayer-" + str(num_features) + "x" + str(num_hidden)
+
         self.output_dir = output_dir
         self.mse_func = MeanSquaredError()
 
@@ -42,10 +44,13 @@ class Autoencoder:
         return self.mse_func(real, recon).numpy()
 
     def set_output_path(self):
+        now = datetime.now().strftime("%Y%m%d-%H%M%S")
+        self.output_path = os.path.join(self.output_dir, now)
+        self.log_path = os.path.join(self.output_path, "log")
         self.tsb = TensorBoard(log_dir=self.output_dir, write_graph=True,
-            update_freq='batch')
+            update_freq='step')
 
-    def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse', metrics
+    def fit(self, x_train, x_test, batch_size, num_epochs, loss_fn='mse', metrics=None,
             optimizer='rmsprop', verbose=1, patience=1, cb=None, validation_data=None):
 
         self.set_output_path()
@@ -62,7 +67,7 @@ class Autoencoder:
 
         
 
-        save_path = os.path.join(self.output_dir, name)
+        save_path = os.path.join(self.output_dir, self.name)
 
         self.autoencoder_model.save(save_path)
         print("Trained model saved at: {}".format(save_path))
@@ -75,6 +80,9 @@ class EncoderStack:
         dropout_rate=0.05, activation='sigmoid'):
 
         self.output_dir = output_dir
+        self.set_output_path()
+        self.name = "autoencoder-{}".format(self.num_hidden)
+
         self.bce_func = BinaryCrossentropy()
 
         model = Sequential()
@@ -102,9 +110,6 @@ class EncoderStack:
         pred = self.model.predict(x)
         return self.bce_func(y, pred).numpy()
 
-    def get(self):
-
-        self.set_output_path()
-        self.name = "autoencoder-{}".format(self.num_hidden)
-
+    @property
+    def model(self):
         return self.model
