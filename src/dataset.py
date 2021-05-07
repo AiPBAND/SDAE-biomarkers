@@ -105,7 +105,7 @@ for i, (train_i, test_i) in enumerate(sss):
 
 artifact = wandb.Artifact("data_splits", type="dataset")
 
-np.save("temp_file", data) 
-artifact.add_file("temp_file.npy", name="split_data", is_tmp=True) 
+np.savez("temp_file", data) 
+artifact.add_file("temp_file.npz", name="split_data") 
 wandb.run.log_artifact(artifact) 
 

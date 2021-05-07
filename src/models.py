@@ -3,7 +3,6 @@ from tensorflow.keras.metrics import MeanSquaredError, BinaryCrossentropy
 from tensorflow.keras.callbacks import TensorBoard
 from tensorflow.keras.models import Model, Sequential
 from tensorflow.keras.layers import Input, Dense, Dropout
-from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.activations import sigmoid
 from datetime import datetime
 import os
@@ -55,11 +54,7 @@ class Autoencoder:
 
         self.set_output_path()
 
-        early_stop = EarlyStopping(monitor='val_loss', patience=patience, verbose=verbose)
-
-        self.autoencoder_model.compile(loss=loss_fn,
-                                        metrics=[], 
-                                        optimizer=optimizer)
+        early_stop = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=1, verbose=2)
 
         self.autoencoder_model.fit(x_train, x_train,
             callbacks=[early_stop, self.tsb, WandbCallback()], epochs=num_epochs,

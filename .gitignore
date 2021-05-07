@@ -166,3 +166,4 @@ secret_key.json
 
 wandb/*
 temp_file*
+artifacts/*
