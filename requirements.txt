@@ -1,6 +1,5 @@
-tensorflow>2.2
-numpy
-scipy
-pandas
-sklearn
-python-decouple
+ludwig[hyperopt]
+ludwig[distributed]
+ludwig[serve]
+ludwig[viz]
+ludwig[test]
