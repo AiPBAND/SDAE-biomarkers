@@ -1,6 +1,8 @@
+import tempfile, os, yaml
+os.environ("TF_XLA_FLAGS") = "--tf_xla_enable_xla_devices"
 import tensorflow as tf
 tf.autograph.set_verbosity(0, True)
-import tempfile, os, yaml
+
 from ludwig.api import kfold_cross_validate, LudwigModel
 import logging
 from matplotlib import pyplot as plt
