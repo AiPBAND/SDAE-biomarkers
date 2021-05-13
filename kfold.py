@@ -2,7 +2,13 @@ import tempfile, os, yaml
 os.environ("TF_XLA_FLAGS") = "--tf_xla_enable_xla_devices"
 import tensorflow as tf
 tf.autograph.set_verbosity(0, True)
-
+import tensorflow as tf
+major_version = int(tf.__version__.split(".")[0])
+if major_version >= 2:
+   from tensorflow.python import _pywrap_util_port
+   print("MKL enabled:", _pywrap_util_port.IsMklEnabled())
+else:
+   print("MKL enabled:", tf.pywrap_tensorflow.IsMklEnabled()) 
 from ludwig.api import kfold_cross_validate, LudwigModel
 import logging
 from matplotlib import pyplot as plt
