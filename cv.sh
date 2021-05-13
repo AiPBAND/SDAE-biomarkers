@@ -1,11 +1,6 @@
 #!/bin/bash
 
 #
-# Download and prepare training data
-#
-python $1
-
-#
 # Run 5-fold cross validation
 #
 ludwig experiment \
