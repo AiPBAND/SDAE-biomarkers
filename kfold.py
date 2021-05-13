@@ -11,6 +11,7 @@ OUT = "results"
 config = yaml.load(RUN_ID)
 print(config)
 
+
 for l in config["splits"]: 
   train ="run_id~"+l+"test.csv"
   test ="run_id~"+l+"train.csv"

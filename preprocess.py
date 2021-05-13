@@ -12,6 +12,8 @@ EPOCHS = 50
 BATCHES = 5
 LATENT = [1000,500]
 
+
+layers = []
 run_id = dt.strftime(dt.now(),"%y%j%H%M")
 for lx, num_latent_nodes in enumerate(LATENT):
 
@@ -33,8 +35,8 @@ for lx, num_latent_nodes in enumerate(LATENT):
     layer_format = (raw_df.shape[1]-2 if lx == 0 else LATENT[lx-1], num_latent_nodes)
     train_df, test_df = train_test_split(raw_df, train_size=0.8, random_state=RANDOM_STATE)
     if not os.path.isdir(DATA_DIR): os.mkdir(DATA_DIR)
-    train_df.to_csv(os.path.join(DATA_DIR, '{}~{}x{}train.csv'.format(run_id,*layer_format)), index=False)
-    test_df.to_csv(os.path.join(DATA_DIR, '{}~{}x{}test.csv'.format(run_id,*layer_format)), index=False)
+    train_df.to_csv(os.path.join(DATA_DIR, '{}-{}x{}train.csv'.format(run_id,*layer_format)), index=False)
+    test_df.to_csv(os.path.join(DATA_DIR, '{}-{}x{}test.csv'.format(run_id,*layer_format)), index=False)
 
     print("Preparing Ludwig config")
     # Create ludwig input_features
@@ -59,7 +61,8 @@ for lx, num_latent_nodes in enumerate(LATENT):
     ]
 
     filename = '{}-{}x{}config.yaml'.format(run_id,*layer_format)
-    splits = []
+    layers.append(filename)
+
     config = {
         'input_features': input_features,
         'output_features': input_features,
@@ -72,9 +75,13 @@ for lx, num_latent_nodes in enumerate(LATENT):
 
     if os.path.isfile(filename):
         os.remove(filename)
-    with open(os.path.join(DATA_DIR, run_id), 'w') as f:
+    with open(os.path.join(DATA_DIR, filename), 'w') as f:
         yaml.dump(config, f)    
     # setup ludwig config
-    
+
+if os.path.isfile(run_id):
+        os.remove(run_id)    
+with open(os.path.join(DATA_DIR, run_id+".yaml"), 'w') as f:
+        yaml.dump({"layers": layers}, f)     
 print("Completed data preparation")
 
