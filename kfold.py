@@ -1,5 +1,6 @@
 import tempfile, os, yaml
-os.environ("TF_XLA_FLAGS") = "--tf_xla_enable_xla_devices"
+
+#os.environ("TF_XLA_FLAGS") = "--tf_xla_enable_xla_devices"
 import tensorflow as tf
 tf.autograph.set_verbosity(0, True)
 import tensorflow as tf
@@ -13,9 +14,9 @@ from ludwig.api import kfold_cross_validate, LudwigModel
 import logging
 from matplotlib import pyplot as plt
 import seaborn as sns
-import glob
+import csv
 
-RUN_CONFIG = "data/211331417.yaml"
+RUN_CONFIG = "data/211371737.yaml"
 OUT = "results"
 with open(RUN_CONFIG) as fin:
   config = yaml.full_load(fin)
@@ -26,6 +27,13 @@ for l in config["layers"]:
 
   train = "data/"+l.split("-")[0] + "-" + l.split("-")[1].replace("config.yaml", "train.csv")
   test = "data/"+l.split("-")[0] + "-" + l.split("-")[1].replace("config.yaml", "test.csv")
+  with open(train) as fin:
+    train  = [list(x) for x in csv.reader(fin, delimiter=',')]
+  with open(test) as fin:
+    test = [list(x) for x in csv.reader(test, delimiter=',')]
+  train =  ' '.join(str(e) for e in train)
+  test =  ' '.join(str(e) for e in test)
+  print(len(train))
   (stats, splits) = kfold_cross_validate(config=config_l, dataset=train, output_directory=OUT, num_folds=5)
 
 print(stats['overall'])

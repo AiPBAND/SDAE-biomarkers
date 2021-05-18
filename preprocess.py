@@ -41,17 +41,30 @@ for lx, num_latent_nodes in enumerate(LATENT):
 
     print("Preparing Ludwig config")
     # Create ludwig input_features
-    num_features = ['X' + str(i) for i in range(1, raw_df.shape[1]-1)]
-    input_features = []
-    output_features = []
+    #num_features = ['X' + str(i) for i in range(1, raw_df.shape[1]-1)]
+    #input_features = []
+    output_features = {
+        "name": "input_vec",
+        "type": "vector",
+        "encoder": "dense",
+        "fc_size": raw_df.shape[1]-1,
+        "norm": None,
+        "norm_params": None,
+        "dropout": 0,
+        "reduce_input": "concat",
+        "reduce_dependencies": "concat",
+    }
     # setup input features for numerical variables
-    for p in num_features:
-        a_feature = {'name': p, 
-                    'type': 'numerical'}
-        b_feature = dict(a_feature)
-        a_feature["preprocessing"] = {'normalization': 'zscore'}
-        input_features.append(a_feature)
-        output_features.append(b_feature)
+    input_features = {
+        "name": "input_vec",
+        "type": "vector",
+        "encoder": "dense",
+        "fc_size": raw_df.shape[1]-1,
+        "norm": None,
+        "norm_params": None,
+        "dropout": 0
+    }
+        
     combiner = {
         "type": "concat",
         "num_fc_layers": 1,
