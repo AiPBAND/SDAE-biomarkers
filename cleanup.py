@@ -3,7 +3,7 @@ import glob, os, shutil
 RESULTS_DIR = 'results'
 DATA_DIR = 'data'
 
-for f in glob.glob("[0-9]{*}.txt"):
+for f in glob.glob("[0-9]{*}"):
     if os.path.isfile(f):
         os.remove(f)
 
