@@ -1,3 +1,5 @@
 torch
 pandas
 clearml
+streamlit
+numpy
